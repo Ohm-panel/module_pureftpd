@@ -2,6 +2,7 @@
 # PureFTPd module - daemon
 #
 # Copyright (C) 2009-2010 UMONS <http://www.umons.ac.be>
+# Copyright (C) 2010 Joel Cogen <joel@joelcogen.com>
 #
 # This file is part of Ohm.
 #
@@ -81,6 +82,8 @@ class Ohmd_pureftpd
       # Add one line per account
       u.pureftpd_accounts.each do |a|
         newpasswd << "#{a.full_username}:#{a.password.split("\\$").join("$")}:#{uid}:#{gid}::/home/#{username}/#{a.root}/./::::::::::::\n"
+        # Make sure root exists
+        makeroot a.root.split('/'), username, "/home/#{username}"
       end
     end
     File.open("/etc/pure-ftpd/pureftpd.passwd", "w") { |f| f.puts newpasswd }
@@ -99,6 +102,21 @@ class Ohmd_pureftpd
 
     # Generate PureDB
     system "pure-pw mkdb"
+  end
+
+private
+
+  def self.makeroot root, username, start
+    unless root.empty?
+      current = "#{start}/#{root.first}"
+      root.delete_at 0
+      unless File.directory? current
+        Dir.mkdir current
+        system "chown #{username}:#{username} \"#{current}\""
+        system "chmod ug+rwx,o-rwx \"#{current}\""
+      end
+      makeroot root, username, current
+    end
   end
 end
 

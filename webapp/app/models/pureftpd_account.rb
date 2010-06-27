@@ -2,6 +2,7 @@
 # PureFTPd module - Account
 #
 # Copyright (C) 2009-2010 UMONS <http://www.umons.ac.be>
+# Copyright (C) 2010 Joel Cogen <joel@joelcogen.com>
 #
 # This file is part of Ohm.
 #
@@ -30,9 +31,9 @@ class PureftpdAccount < ActiveRecord::Base
 
   validates_presence_of :pureftpd_user_id, :password, :username, :domain_id
   validates_format_of :username, :with => /\A[a-z][a-z0-9_-]*\Z/
-  validates_format_of :root, :with => /\A[a-zA-Z0-9_\-\/.]*\Z/
+  validates_format_of :root, :with => /\A[a-zA-Z0-9_\-\/.\s]*\Z/
   validates_uniqueness_of :username, :scope => :domain_id
-  validate :passwords_match, :legal_domain
+  validate :passwords_match, :legal_domain, :legal_root
 
   attr_accessor :password_confirmation
 
@@ -42,6 +43,10 @@ class PureftpdAccount < ActiveRecord::Base
 
   def legal_domain
     errors.add(:domain, "is not yours") unless pureftpd_user and pureftpd_user.user.domains.include? domain
+  end
+
+  def legal_root
+    errors.add(:root, "cannot contain '..'") if not root.nil? and root.include? ".."
   end
 
   def before_save

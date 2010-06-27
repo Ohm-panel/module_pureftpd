@@ -2,6 +2,7 @@
 # PureFTPd module - Accounts test
 #
 # Copyright (C) 2009-2010 UMONS <http://www.umons.ac.be>
+# Copyright (C) 2010 Joel Cogen <joel@joelcogen.com>
 #
 # This file is part of Ohm.
 #
@@ -76,6 +77,18 @@ class PureftpdAccountsTest < ActiveSupport::TestCase
     acc.domain_id = 2
     acc.save
     assert acc.errors.invalid?(:domain), "Illegal domain accepted"
+  end
+
+  test "root" do
+    # Valid root dir
+    acc = pureftpd_accounts(:one)
+    acc.root = "/test.dir/test_dir/test-dir/test dir", "Good root rejected"
+    assert acc.valid
+
+    # Invalid root dir (.. refused)
+    acc.root = "../imdahacker/"
+    acc.save
+    assert acc.errors.invalid?(:root), "Root with .. accepted"
   end
 end
 
