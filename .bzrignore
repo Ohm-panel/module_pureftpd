@@ -1,4 +1,6 @@
-.
+webapp/log/*
+webapp/db/*.sqlite3
+install.log
 ./LICENSE
 ./install.ubuntu-10.04.sh
 ./ohmd
