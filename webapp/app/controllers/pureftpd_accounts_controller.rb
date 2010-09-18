@@ -47,7 +47,7 @@ class PureftpdAccountsController < PureftpdController
     @account.pureftpd_user = @logged_pureftpd_user
 
     if @account.save
-      flash[:notice] = 'Account successfully created.'
+      flash[:notice] = "Account successfully created.#{@@warn_changes}"
       redirect_to :action => 'index'
     else
       render :action => 'new'
@@ -66,7 +66,7 @@ class PureftpdAccountsController < PureftpdController
       flash[:error] = 'Invalid account'
       redirect_to :action => 'index'
     elsif @account.update_attributes(params[:pureftpd_account])
-      flash[:notice] = @account.username + ' was successfully updated.'
+      flash[:notice] = @account.username + " was successfully updated.#{@@warn_changes}"
       redirect_to :action => 'index'
     else
       render :action => 'edit'
@@ -79,7 +79,7 @@ class PureftpdAccountsController < PureftpdController
     if @account.pureftpd_user == @logged_pureftpd_user
       @account.destroy
 
-      flash[:notice] = @account.username + ' was successfully deleted.'
+      flash[:notice] = @account.username + " was successfully deleted.#{@@warn_changes}"
       redirect_to :action => 'index'
     else
       flash[:error] = 'Invalid account'
