@@ -82,8 +82,8 @@ class PureftpdAccountsTest < ActiveSupport::TestCase
   test "root" do
     # Valid root dir
     acc = pureftpd_accounts(:one)
-    acc.root = "/test.dir/test_dir/test-dir/test dir", "Good root rejected"
-    assert acc.valid
+    acc.root = "/test.dir/test_dir/test-dir/test dir"
+    assert acc.valid?, "Good root rejected"
 
     # Invalid root dir (.. refused)
     acc.root = "../imdahacker/"
