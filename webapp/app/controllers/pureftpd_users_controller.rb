@@ -58,7 +58,7 @@ class PureftpdUsersController < PureftpdController
 
     if @pureftpd_user.update_attributes(params[:pureftpd_user])
       flash[:notice] = 'FTP user was successfully updated.'
-      redirect_to(@pureftpd_user)
+      redirect_to @pureftpd_user.user
     else
       render :action => "edit"
     end
