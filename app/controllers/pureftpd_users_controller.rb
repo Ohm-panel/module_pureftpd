@@ -1,6 +1,6 @@
 ### Ohm PureFTPd module <http://joelcogen.com/projects/ohm/> ###
 #
-# Main controller
+# Users controller
 #
 # Copyright (C) 2010 Joel Cogen <http://joelcogen.com>
 #
@@ -47,58 +47,51 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 
-class PureftpdController < ApplicationController
-  before_filter :authenticate
+class PureftpdUsersController < PureftpdController
+  unloadable
+  before_filter :authenticate_pureftpd_user
 
   def controller_name
     "FTP"
   end
 
-  def authenticate_pureftpd_user
-    @logged_pureftpd_user = PureftpdUser.find(:first, :conditions => { :user_id => @logged_user })
-    if @logged_pureftpd_user
-      true
-    elsif @logged_user.root?
-      # Create an unlimited account for root and return it
-      @logged_pureftpd_user = PureftpdUser.new(:user_id       => @logged_user.id,
-                                               :max_accounts  => -1)
-      @logged_pureftpd_user.save
-      true
-    else
-      flash[:error] = "You don't have access to this service. If you think you should, please contact your administrator."
-      redirect_to :controller => 'dashboard'
-      false
+  def show
+    if params[:user_id]
+      @pureftpd_user = PureftpdUser.find(:first, :conditions => { :user_id => params[:user_id] })
+    elsif params[:id]
+      @pureftpd_user = PureftpdUser.find(params[:id])
     end
   end
 
-  def index
-    redirect_to :controller => 'pureftpd_accounts'
+  def new
+    @pureftpd_user = PureftpdUser.new(:user_id => params[:user_id])
+    @user = User.find(params[:user_id])
   end
 
-  def addtodomain
-    # This service is not "per domain"
-    @domain = Domain.find(params[:domain_id])
-    @service = Service.find(params[:service_id])
-    @domain.services.delete @service
-
-    flash[:error] = "This is a global service, you cannot add it to a domain"
-    redirect_to @domain
+  def edit
+    @pureftpd_user = PureftpdUser.find(params[:id])
   end
 
-  def addtouser
-    redirect_to :controller => 'pureftpd_users', :action => 'new', :user_id => params[:user_id]
+  def create
+    @pureftpd_user = PureftpdUser.new(params[:pureftpd_user])
+
+    if @pureftpd_user.save
+      flash[:notice] = 'FTP service successfully added.'
+      redirect_to @pureftpd_user.user
+    else
+      render :action => "new"
+    end
   end
 
-  def removefromuser
-    usertodel = PureftpdUser.find(:first, :conditions => { :user_id => params[:user_id] })
-    usertodel.destroy unless usertodel.nil?
+  def update
+    @pureftpd_user = PureftpdUser.find(params[:id])
 
-    flash[:notice] = "Service removed"
-    redirect_to User.find(params[:user_id])
-  end
-
-  def showuser
-    redirect_to :controller => 'pureftpd_users', :action => 'show', :user_id => params[:user_id]
+    if @pureftpd_user.update_attributes(params[:pureftpd_user])
+      flash[:notice] = 'FTP user was successfully updated.'
+      redirect_to @pureftpd_user.user
+    else
+      render :action => "edit"
+    end
   end
 end
 

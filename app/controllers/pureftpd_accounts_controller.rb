@@ -1,5 +1,7 @@
 ### Ohm PureFTPd module <http://joelcogen.com/projects/ohm/> ###
 #
+# Accounts controller
+#
 # Copyright (C) 2010 Joel Cogen <http://joelcogen.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -45,17 +47,74 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 
-class CreatePureftpdUsers < ActiveRecord::Migration
-  def self.up
-    create_table :pureftpd_users do |t|
-      t.integer :user_id
-      t.integer :max_accounts
+class PureftpdAccountsController < PureftpdController
+  unloadable
+  before_filter :authenticate_pureftpd_user
 
-      t.timestamps
+  def controller_name
+    "FTP"
+  end
+
+  def index
+    @accounts = @logged_pureftpd_user.pureftpd_accounts
+  end
+
+  def new
+    @account = PureftpdAccount.new
+  end
+
+  def edit
+    @account = PureftpdAccount.find(params[:id])
+
+    unless @account.pureftpd_user == @logged_pureftpd_user
+      flash[:error] = 'Invalid account'
+      redirect_to :action => 'index'
     end
   end
 
-  def self.down
-    drop_table :pureftpd_users
+  def create
+    @account = PureftpdAccount.new(params[:pureftpd_account])
+    @account.pureftpd_user = @logged_pureftpd_user
+
+    if @account.save
+      flash[:notice] = "Account successfully created.#{@@changes}"
+      redirect_to :action => 'index'
+    else
+      render :action => 'new'
+    end
+  end
+
+  def update
+    @account = PureftpdAccount.find(params[:id])
+    @newatts = params[:pureftpd_account]
+    if @newatts[:password] == ''
+      @newatts[:password_confirmation] = nil
+      @newatts[:password] = @account.password
+    end
+
+    if not @account.pureftpd_user == @logged_pureftpd_user
+      flash[:error] = 'Invalid account'
+      redirect_to :action => 'index'
+    elsif @account.update_attributes(params[:pureftpd_account])
+      flash[:notice] = @account.username + " was successfully updated.#{@@changes}"
+      redirect_to :action => 'index'
+    else
+      render :action => 'edit'
+    end
+  end
+
+  def destroy
+    @account = PureftpdAccount.find(params[:id])
+
+    if @account.pureftpd_user == @logged_pureftpd_user
+      @account.destroy
+
+      flash[:notice] = @account.username + " was successfully deleted.#{@@changes}"
+      redirect_to :action => 'index'
+    else
+      flash[:error] = 'Invalid account'
+      redirect_to :action => 'index'
+    end
   end
 end
+
