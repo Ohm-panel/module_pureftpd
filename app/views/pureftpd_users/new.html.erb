@@ -1,4 +1,4 @@
-<h1>Adding FTP service to <%= @pureftpd_user.user.full_name %></h1>
+<h1>Adding FTP service to <%= @user.full_name %></h1>
 
 <% form_for(@pureftpd_user, :url => { :controller => 'pureftpd_users', :action => 'create', :id => @pureftpd_user.id }) do |f| %>
   <%= f.error_messages %>

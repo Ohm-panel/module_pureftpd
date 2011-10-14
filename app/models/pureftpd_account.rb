@@ -53,8 +53,12 @@ class PureftpdAccount < ActiveRecord::Base
   belongs_to :pureftpd_user
   belongs_to :domain
 
+  def domain
+    Domain.find_by_id domain_id
+  end
+
   def full_username
-    self.username + '@' + self.domain.domain
+    username + '@' + domain.domain
   end
 
   validates_presence_of :pureftpd_user_id, :password, :username, :domain_id
@@ -66,15 +70,15 @@ class PureftpdAccount < ActiveRecord::Base
   attr_accessor :password_confirmation
 
   def passwords_match
-    errors.add(:password_confirmation, "doesn't match password") if password_confirmation and password_confirmation != password
+    errors.add(:password_confirmation, "doesn't match password") if password_confirmation && password_confirmation != password
   end
 
   def legal_domain
-    errors.add(:domain, "is not yours") unless pureftpd_user and pureftpd_user.user.domains.include? domain
+    errors.add(:domain, "is not yours") unless pureftpd_user && pureftpd_user.user.domains.include?(domain)
   end
 
   def legal_root
-    errors.add(:root, "cannot contain '..'") if not root.nil? and root.include? ".."
+    errors.add(:root, "cannot contain '..'") if root.present? && root.include?("..")
   end
 
   def before_save
