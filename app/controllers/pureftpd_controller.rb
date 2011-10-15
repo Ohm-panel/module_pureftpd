@@ -6,23 +6,6 @@ class PureftpdController < ApplicationController
     "FTP"
   end
 
-  def authenticate_pureftpd_user
-    @logged_pureftpd_user = PureftpdUser.find(:first, :conditions => { :user_id => @logged_user })
-    if @logged_pureftpd_user
-      true
-    elsif @logged_user.root?
-      # Create an unlimited account for root and return it
-      @logged_pureftpd_user = PureftpdUser.new(:user_id       => @logged_user.id,
-                                               :max_accounts  => -1)
-      @logged_pureftpd_user.save
-      true
-    else
-      flash[:error] = "You don't have access to this service. If you think you should, please contact your administrator."
-      redirect_to :controller => 'dashboard'
-      false
-    end
-  end
-
   def index
     redirect_to :controller => 'pureftpd_accounts'
   end
@@ -51,6 +34,25 @@ class PureftpdController < ApplicationController
 
   def showuser
     redirect_to :controller => 'pureftpd_users', :action => 'show', :user_id => params[:user_id]
+  end
+
+private
+
+  def authenticate_pureftpd_user
+    @logged_pureftpd_user = PureftpdUser.find(:first, :conditions => { :user_id => @logged_user })
+    if @logged_pureftpd_user
+      true
+    elsif @logged_user.root?
+      # Create an unlimited account for root and return it
+      @logged_pureftpd_user = PureftpdUser.new(:user_id       => @logged_user.id,
+                                               :max_accounts  => -1)
+      @logged_pureftpd_user.save
+      true
+    else
+      flash[:error] = "You don't have access to this service. If you think you should, please contact your administrator."
+      redirect_to :controller => 'dashboard'
+      false
+    end
   end
 end
 
